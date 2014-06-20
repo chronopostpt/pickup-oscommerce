@@ -1,6 +1,7 @@
 <?php
 /**
  * @package shippingMethod
+ * @copyright Copyright 2012 carlos.cabral@motivus.pt @cmpscabral
  * @copyright Copyright 2012 AmplitudeNet
  * @copyright Portions 2003-2009 Zen Cart Development Team
  * @copyright Portions Copyright 2003 osCommerce
@@ -10,7 +11,7 @@
  * Store-Pickup / Will-Call shipping method
  *
  */
-class chronopostpickme extends base {
+class chronopostpickme {
   /**
    * $code determines the internal 'code' name used to designate "this" payment module
    *
@@ -75,7 +76,7 @@ class chronopostpickme extends base {
 
     if ( ($this->enabled == true) && ((int)MODULE_SHIPPING_CHRONOPOSTPICKME_ZONE > 0) ) {
       $check_flag = false;
-      $check = $db->Execute("select zone_id from " . TABLE_ZONES_TO_GEO_ZONES . "
+      $check = tep_db_query("select zone_id from " . TABLE_ZONES_TO_GEO_ZONES . "
                              where geo_zone_id = '" . MODULE_SHIPPING_CHRONOPOSTPICKME_ZONE . "'
                              and zone_country_id = '" . $order->delivery['country']['id'] . "'
                              order by zone_id");
@@ -116,10 +117,10 @@ class chronopostpickme extends base {
                                                    'cost' => MODULE_SHIPPING_CHRONOPOSTPICKME_COST)));
 
     if ($this->tax_class > 0) {
-      $this->quotes['tax'] = zen_get_tax_rate($this->tax_class, $order->delivery['country']['id'], $order->delivery['zone_id']);
+      $this->quotes['tax'] = tep_get_tax_rate($this->tax_class, $order->delivery['country']['id'], $order->delivery['zone_id']);
     }
 
-    if (zen_not_null($this->icon)) $this->quotes['icon'] = zen_image($this->icon, $this->title);
+    if (tep_not_null($this->icon)) $this->quotes['icon'] = tep_image($this->icon, $this->title);
 
     return $this->quotes;
   }
@@ -129,10 +130,9 @@ class chronopostpickme extends base {
    * @return boolean
    */
   function check() {
-    global $db;
     if (!isset($this->_check)) {
-      $check_query = $db->Execute("select configuration_value from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_SHIPPING_CHRONOPOSTPICKME_STATUS'");
-      $this->_check = $check_query->RecordCount();
+      $check_query = tep_db_query("select configuration_value from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_SHIPPING_CHRONOPOSTPICKME_STATUS'");
+      $this->_check = tep_db_num_rows($check_query);
     }
     return $this->_check;
   }
@@ -141,22 +141,22 @@ class chronopostpickme extends base {
    *
    */
   function install() {
-    global $db;
-    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Store Pickup Shipping', 'MODULE_SHIPPING_CHRONOPOSTPICKME_STATUS', 'True', 'Do you want to offer In Store rate shipping?', '6', '0', 'zen_cfg_select_option(array(\'True\', \'False\'), ', now())");
-    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Shipping Cost', 'MODULE_SHIPPING_CHRONOPOSTPICKME_COST', '0.00', 'The shipping cost for all orders using this shipping method.', '6', '0', now())");
-    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, use_function, set_function, date_added) values ('Tax Class', 'MODULE_SHIPPING_CHRONOPOSTPICKME_TAX_CLASS', '0', 'Use the following tax class on the shipping fee.', '6', '0', 'zen_get_tax_class_title', 'zen_cfg_pull_down_tax_classes(', now())");
-    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Tax Basis', 'MODULE_SHIPPING_CHRONOPOSTPICKME_TAX_BASIS', 'Shipping', 'On what basis is Shipping Tax calculated. Options are<br />Shipping - Based on customers Shipping Address<br />Billing Based on customers Billing address<br />Store - Based on Store address if Billing/Shipping Zone equals Store zone', '6', '0', 'zen_cfg_select_option(array(\'Shipping\', \'Billing\'), ', now())");
-    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, use_function, set_function, date_added) values ('Shipping Zone', 'MODULE_SHIPPING_CHRONOPOSTPICKME_ZONE', '0', 'If a zone is selected, only enable this shipping method for that zone.', '6', '0', 'zen_get_zone_class_title', 'zen_cfg_pull_down_zone_classes(', now())");
-    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Sort Order', 'MODULE_SHIPPING_CHRONOPOSTPICKME_SORT_ORDER', '0', 'Sort order of display.', '6', '0', now())");
-    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('WebService Address', 'MODULE_SHIPPING_CHRONOPOSTPICKME_WEBSERVICE', 'https://83.240.239.170:7554/ChronoWSB2CPointsv3/GetB2CPoints_v3Service?wsdl', 'WebService Address', '6', '0', now())");
 
-    $db->Execute("CREATE TABLE IF NOT EXISTS `chronopost_pickme_shop_orders` (
+    tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Store Pickup Shipping', 'MODULE_SHIPPING_CHRONOPOSTPICKME_STATUS', 'True', 'Do you want to offer In Store rate shipping?', '6', '0', 'tep_cfg_select_option(array(\'True\', \'False\'), ', now())");
+    tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Shipping Cost', 'MODULE_SHIPPING_CHRONOPOSTPICKME_COST', '0.00', 'The shipping cost for all orders using this shipping method.', '6', '0', now())");
+    tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, use_function, set_function, date_added) values ('Tax Class', 'MODULE_SHIPPING_CHRONOPOSTPICKME_TAX_CLASS', '0', 'Use the following tax class on the shipping fee.', '6', '0', 'tep_get_tax_class_title', 'tep_cfg_pull_down_tax_classes(', now())");
+    tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Tax Basis', 'MODULE_SHIPPING_CHRONOPOSTPICKME_TAX_BASIS', 'Shipping', 'On what basis is Shipping Tax calculated. Options are<br />Shipping - Based on customers Shipping Address<br />Billing Based on customers Billing address<br />Store - Based on Store address if Billing/Shipping Zone equals Store zone', '6', '0', 'tep_cfg_select_option(array(\'Shipping\', \'Billing\'), ', now())");
+    tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, use_function, set_function, date_added) values ('Shipping Zone', 'MODULE_SHIPPING_CHRONOPOSTPICKME_ZONE', '0', 'If a zone is selected, only enable this shipping method for that zone.', '6', '0', 'tep_get_zone_class_title', 'tep_cfg_pull_down_zone_classes(', now())");
+    tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Sort Order', 'MODULE_SHIPPING_CHRONOPOSTPICKME_SORT_ORDER', '0', 'Sort order of display.', '6', '0', now())");
+    tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('WebService Address', 'MODULE_SHIPPING_CHRONOPOSTPICKME_WEBSERVICE', 'https://83.240.239.170:7554/ChronoWSB2CPointsv3/GetB2CPoints_v3Service?wsdl', 'WebService Address', '6', '0', now())");
+
+    tep_db_query("CREATE TABLE IF NOT EXISTS `chronopost_pickme_shop_orders` (
       `id_order` int(10) unsigned NOT NULL,
       `id_pickme_shop` int(10) unsigned NOT NULL,
       PRIMARY KEY  (`id_order`)
     ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1");
 
-    $db->Execute("CREATE TABLE IF NOT EXISTS `chronopost_pickme_shops` (
+    tep_db_query("CREATE TABLE IF NOT EXISTS `chronopost_pickme_shops` (
       `id_pickme_shop` int(10) unsigned NOT NULL auto_increment,
       `pickme_id` varchar(30) NULL,
       `name` varchar(255) NULL,
@@ -173,8 +173,7 @@ class chronopostpickme extends base {
    *
    */
   function remove() {
-    global $db;
-    $db->Execute("delete from " . TABLE_CONFIGURATION . " where configuration_key like 'MODULE\_SHIPPING\_CHRONOPOSTPICKME\_%'");
+    tep_db_query("delete from " . TABLE_CONFIGURATION . " where configuration_key like 'MODULE\_SHIPPING\_CHRONOPOSTPICKME\_%'");
   }
   /**
    * Internal list of configuration keys used for configuration of the module
@@ -186,20 +185,20 @@ class chronopostpickme extends base {
   }
 
   function getStore($id) {
-    global $db;
-    $res = $db->Execute('select * from chronopost_pickme_shops where id_pickme_shop ='.$id);
-    return $res->fields['pickme_id'] . ' - ' . $res->fields['name'].' '.$res->fields['address'].' '.$res->fields['postal_code'].' '.$res->fields['location'];
+
+    $res = tep_db_query('select * from chronopost_pickme_shops where id_pickme_shop ='.$id.' limit 1');
+    while ($row = tep_db_fetch_array($res)) {
+      return $row['pickme_id'] . ' - ' . $row['name'].' '.$row['address'].' '.$row['postal_code'].' '.$row['location'];
+    }
   }
 
   function getStores() {
-    global $db;
-    $res = $db->Execute('select * from chronopost_pickme_shops order by location');
+    $res = tep_db_query('select * from chronopost_pickme_shops order by location');
     return $res;
   }
 
   function updateDatabase()
   {
-    global $db;
     $string = $this->webservice_adress;
 
     if ($string == '') {
@@ -216,16 +215,15 @@ class chronopostpickme extends base {
             VALUES ("'.$message->Number.'", "'.$message->Name.'", "'.$message->Address.'", "'.$message->PostalCode.'", "'.$message->PostalCodeLocation.'")
             ON DUPLICATE KEY UPDATE pickme_id=pickme_id
             ';
-          $db->Execute($query);
+          tep_db_query($query);
       }
     } catch (Exception $e) {
       return true;
     }
     $res = $this->getStores();
     $storesJS = array();
-    while (!$res->EOF) {
-      $storesJs[] = '{id:"'.$res->fields['id_pickme_shop'].'",name:"'.$res->fields['name'].'",title:"'.$res->fields['name'].' '.$res->fields['address'].' '.$res->fields['postal_code'].' '.$res->fields['location'].'",address:"'.$res->fields['address'].'",location:"'.$res->fields['location'].'"}';
-      $res->MoveNext();
+    while ($row = tep_db_fetch_array($res)) {
+      $storesJs[] = '{id:"'.$row['id_pickme_shop'].'",name:"'.$row['name'].'",title:"'.$row['name'].' '.$row['address'].' '.$row['postal_code'].' '.$row['location'].'",address:"'.$row['address'].'",location:"'.$row['location'].'"}';
     }
 
     $data = str_replace("{STORES}", implode(",\n",$storesJs), $this->JS);
@@ -282,7 +280,7 @@ chronopostpickme = {
 
     chronopostpickme.createCookie('chronopostpickme_store',val);
 
-    console.log(chronopostpickme.readCookie('chronopostpickme_store'));
+    //console.log(chronopostpickme.readCookie('chronopostpickme_store'));
   },
 
   createCookie : function(name,value,days) {
@@ -312,7 +310,7 @@ chronopostpickme = {
 };
 
 window.onload = function(){
-  if (location.search.indexOf('checkout_shipping')!=-1) {
+  if (location.href.indexOf('checkout_shipping')!=-1) {
     chronopostpickme.init();
   }
 };
