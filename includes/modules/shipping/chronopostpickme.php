@@ -148,7 +148,7 @@ class chronopostpickme {
     tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Tax Basis', 'MODULE_SHIPPING_CHRONOPOSTPICKME_TAX_BASIS', 'Shipping', 'On what basis is Shipping Tax calculated. Options are<br />Shipping - Based on customers Shipping Address<br />Billing Based on customers Billing address<br />Store - Based on Store address if Billing/Shipping Zone equals Store zone', '6', '0', 'tep_cfg_select_option(array(\'Shipping\', \'Billing\'), ', now())");
     tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, use_function, set_function, date_added) values ('Shipping Zone', 'MODULE_SHIPPING_CHRONOPOSTPICKME_ZONE', '0', 'If a zone is selected, only enable this shipping method for that zone.', '6', '0', 'tep_get_zone_class_title', 'tep_cfg_pull_down_zone_classes(', now())");
     tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Sort Order', 'MODULE_SHIPPING_CHRONOPOSTPICKME_SORT_ORDER', '0', 'Sort order of display.', '6', '0', now())");
-    tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('WebService Address', 'MODULE_SHIPPING_CHRONOPOSTPICKME_WEBSERVICE', 'https://83.240.239.170:7554/ChronoWSB2CPointsv3/GetB2CPoints_v3Service?wsdl', 'WebService Address', '6', '0', now())");
+    tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('WebService Address', 'MODULE_SHIPPING_CHRONOPOSTPICKME_WEBSERVICE', 'http://83.240.239.170:7790/ChronoWSB2CPointsv3/GetB2CPoints_v3Service?wsdl', 'WebService Address', '6', '0', now())");
 
     tep_db_query("CREATE TABLE IF NOT EXISTS `chronopost_pickme_shop_orders` (
       `id_order` int(10) unsigned NOT NULL,
@@ -202,7 +202,7 @@ class chronopostpickme {
     $string = $this->webservice_adress;
 
     if ($string == '') {
-      $string = "https://83.240.239.170:7554/ChronoWSB2CPointsv3/GetB2CPoints_v3Service?wsdl";
+      $string = "http://83.240.239.170:7790/ChronoWSB2CPointsv3/GetB2CPoints_v3Service?wsdl";
     }
     try {
       $client = new SoapClient($string);
