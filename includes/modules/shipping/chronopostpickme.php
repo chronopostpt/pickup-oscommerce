@@ -84,23 +84,24 @@ class chronopostpickme {
 
     if ( ($this->enabled == true) && ((int)MODULE_SHIPPING_CHRONOPOSTPICKME_ZONE > 0) ) {
       $check_flag = false;
-      $check = tep_db_query("select zone_id from " . TABLE_ZONES_TO_GEO_ZONES . "
+      $check_query = tep_db_query("select zone_id from " . TABLE_ZONES_TO_GEO_ZONES . "
                              where geo_zone_id = '" . MODULE_SHIPPING_CHRONOPOSTPICKME_ZONE . "'
                              and zone_country_id = '" . $order->delivery['country']['id'] . "'
                              order by zone_id");
-      while (!$check->EOF) {
-        if ($check->fields['zone_id'] < 1) {
-          $check_flag = true;
-          break;
-        } elseif ($check->fields['zone_id'] == $order->delivery['zone_id']) {
-          $check_flag = true;
-          break;
-        }
-        $check->MoveNext();
-      }
+
+    		while ($check = tep_db_fetch_array($check_query)) {
+    			if ($check['zone_id'] < 1) {
+    				$check_flag = true;
+    				break;
+    			} elseif ($check['zone_id'] == $order->delivery['zone_id']) {
+    				$check_flag = true;
+    				break;
+    			}
+    		}
 
       if ($check_flag == false) {
         $this->enabled = false;
+		
       }
     }
   }
