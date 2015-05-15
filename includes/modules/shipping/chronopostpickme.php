@@ -73,6 +73,14 @@ class chronopostpickme {
       isset($_GET['action']) && $_GET['action']=='edit') {
        $this->updateDatabase();
     }
+    
+    //auto-update
+    $js_file = $_SERVER['DOCUMENT_ROOT'].'/chronopostpickme.js';
+        
+    if (!(file_exists($js_file) && (time() - filemtime($js_file)) < (3600*24) /* 1day */ )){
+		$this->updateDatabase();
+	}
+    
 
     if ( ($this->enabled == true) && ((int)MODULE_SHIPPING_CHRONOPOSTPICKME_ZONE > 0) ) {
       $check_flag = false;
@@ -107,7 +115,7 @@ class chronopostpickme {
 
     $title = MODULE_SHIPPING_CHRONOPOSTPICKME_TEXT_WAY;
     if ($_POST['shipping'] == 'chronopostpickme_chronopostpickme') {
-      $title = 'ChronoPost PickMe - '.$this->getStore($_POST['chronopostpickme_store']);
+      $title = 'ChronoPost PickUp - '.$this->getStore($_POST['chronopostpickme_store']);
     }
 
     $this->quotes = array('id' => $this->code,
@@ -208,6 +216,9 @@ class chronopostpickme {
       $client = new SoapClient($string);
 
       $result = $client->getPointList_V3();
+      
+      $pickme_ids = array();
+      
       foreach ($result->return->lB2CPointsArr as $message) {
           $query = '
             INSERT INTO `chronopost_pickme_shops`
@@ -216,7 +227,18 @@ class chronopostpickme {
             ON DUPLICATE KEY UPDATE pickme_id=pickme_id
             ';
           tep_db_query($query);
+          
+          $pickme_ids[] = $message->Number;
+          
       }
+      
+		if (count($pickme_ids)) {
+			$pickme_id_str = "'".implode("','",$pickme_ids)."'";
+			$delete_query = "DELETE FROM `chronopost_pickme_shops` WHERE pickme_id NOT IN ($pickme_id_str)";
+			tep_db_query($delete_query);
+		}
+      
+      
     } catch (Exception $e) {
       return true;
     }
